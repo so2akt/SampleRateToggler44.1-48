@@ -25,6 +25,8 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE SetEndpointVisibility(PCWSTR pszDeviceName, bool bVisible) = 0;
 };
 
+#define TARGET_DEV_NAME (L"SPDIF-In (USB Sound Blaster HD)")
+
 int main()
 {
 	HRESULT hRes = NULL;
@@ -169,6 +171,27 @@ int main()
 		wprintf(L"\t\tcbSize: %d\n", pMixFormat->cbSize);
 
 		wprintf(L"\n");
+
+		/* if corresponding device found, set desired sample rate and calculate value(s) with it */
+		if (0 == _wcsicmp(friendlyName.pwszVal, TARGET_DEV_NAME))
+		{
+			/* NOTE: if change wBitsPerSample, calculate nBlockAlign with it */
+			pDevFormat->nSamplesPerSec = (44100 == pDevFormat->nSamplesPerSec) ? 48000 : 44100;
+			pDevFormat->nAvgBytesPerSec = pDevFormat->nSamplesPerSec * pDevFormat->nBlockAlign;
+			pMixFormat->nSamplesPerSec = (44100 == pMixFormat->nSamplesPerSec) ? 48000 : 44100;
+			pMixFormat->nAvgBytesPerSec = pMixFormat->nSamplesPerSec * pMixFormat->nBlockAlign;
+			hRes = pPolicyConfig->SetDeviceFormat(wstrEndpointId, pDevFormat, pMixFormat);
+			if (FAILED(hRes))	/* TODO: refactor error proc*/
+			{
+				pPolicyConfig->Release();
+				pPropStore->Release();
+				pDevId->Release();
+				pDev->Release();
+				pDevEnum->Release();
+				CoUninitialize();
+				return EXIT_FAILURE;
+			}
+		}
 
 		PropVariantClear(&friendlyName);
 	}
