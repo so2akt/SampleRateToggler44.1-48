@@ -183,6 +183,7 @@ int main()
 			hRes = pPolicyConfig->SetDeviceFormat(wstrEndpointId, pDevFormat, pMixFormat);
 			if (FAILED(hRes))	/* TODO: refactor error proc*/
 			{
+				wprintf(L"*** FAILED to change into your desired format...\n");
 				pPolicyConfig->Release();
 				pPropStore->Release();
 				pDevId->Release();
@@ -190,6 +191,28 @@ int main()
 				pDevEnum->Release();
 				CoUninitialize();
 				return EXIT_FAILURE;
+			}
+			else
+			{
+				wprintf(L"*** succeeded to change into your desired format as follows:\n");
+				wprintf(L"Device No. %d: %ls\n", i, friendlyName.pwszVal);	/* FIXME: show multi-byte letters properly */
+				wprintf(L"\tWAVEFORMATEX Data from GetDeviceFormat\n");
+				wprintf(L"\t\twFormatTag: %d\n", pDevFormat->wFormatTag);
+				wprintf(L"\t\tnChannels: %d\n", pDevFormat->nChannels);
+				wprintf(L"\t\tnSamplesPerSec: %ld\n", pDevFormat->nSamplesPerSec);
+				wprintf(L"\t\tnAvgBytesPerSec: %ld\n", pDevFormat->nAvgBytesPerSec);
+				wprintf(L"\t\tnBlockAlign: %ld\n", pDevFormat->nBlockAlign);
+				wprintf(L"\t\twBitsPerSample: %d\n", pDevFormat->wBitsPerSample);
+				wprintf(L"\t\tcbSize: %d\n", pDevFormat->cbSize);
+				wprintf(L"\tWAVEFORMATEX Data from GetMixFormat\n");
+				wprintf(L"\t\twFormatTag: %d\n", pMixFormat->wFormatTag);
+				wprintf(L"\t\tnChannels: %d\n", pMixFormat->nChannels);
+				wprintf(L"\t\tnSamplesPerSec: %ld\n", pMixFormat->nSamplesPerSec);
+				wprintf(L"\t\tnAvgBytesPerSec: %ld\n", pMixFormat->nAvgBytesPerSec);
+				wprintf(L"\t\tnBlockAlign: %ld\n", pMixFormat->nBlockAlign);
+				wprintf(L"\t\twBitsPerSample: %d\n", pMixFormat->wBitsPerSample);
+				wprintf(L"\t\tcbSize: %d\n", pMixFormat->cbSize);
+				wprintf(L"***\n\n");
 			}
 		}
 
