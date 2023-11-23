@@ -25,6 +25,8 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE SetEndpointVisibility(PCWSTR pszDeviceName, bool bVisible) = 0;
 };
 
+#define TARGET_DEV_NAME (L"SPDIF-In (USB Sound Blaster HD)")
+
 int main()
 {
 	HRESULT hRes = NULL;
@@ -169,6 +171,50 @@ int main()
 		wprintf(L"\t\tcbSize: %d\n", pMixFormat->cbSize);
 
 		wprintf(L"\n");
+
+		/* if corresponding device found, set desired sample rate and calculate value(s) with it */
+		if (0 == _wcsicmp(friendlyName.pwszVal, TARGET_DEV_NAME))
+		{
+			/* NOTE: if change wBitsPerSample, calculate nBlockAlign with it */
+			pDevFormat->nSamplesPerSec = (44100 == pDevFormat->nSamplesPerSec) ? 48000 : 44100;
+			pDevFormat->nAvgBytesPerSec = pDevFormat->nSamplesPerSec * pDevFormat->nBlockAlign;
+			pMixFormat->nSamplesPerSec = (44100 == pMixFormat->nSamplesPerSec) ? 48000 : 44100;
+			pMixFormat->nAvgBytesPerSec = pMixFormat->nSamplesPerSec * pMixFormat->nBlockAlign;
+			hRes = pPolicyConfig->SetDeviceFormat(wstrEndpointId, pDevFormat, pMixFormat);
+			if (FAILED(hRes))	/* TODO: refactor error proc*/
+			{
+				wprintf(L"*** FAILED to change into your desired format...\n");
+				pPolicyConfig->Release();
+				pPropStore->Release();
+				pDevId->Release();
+				pDev->Release();
+				pDevEnum->Release();
+				CoUninitialize();
+				return EXIT_FAILURE;
+			}
+			else
+			{
+				wprintf(L"*** succeeded to change into your desired format as follows:\n");
+				wprintf(L"Device No. %d: %ls\n", i, friendlyName.pwszVal);	/* FIXME: show multi-byte letters properly */
+				wprintf(L"\tWAVEFORMATEX Data from GetDeviceFormat\n");
+				wprintf(L"\t\twFormatTag: %d\n", pDevFormat->wFormatTag);
+				wprintf(L"\t\tnChannels: %d\n", pDevFormat->nChannels);
+				wprintf(L"\t\tnSamplesPerSec: %ld\n", pDevFormat->nSamplesPerSec);
+				wprintf(L"\t\tnAvgBytesPerSec: %ld\n", pDevFormat->nAvgBytesPerSec);
+				wprintf(L"\t\tnBlockAlign: %ld\n", pDevFormat->nBlockAlign);
+				wprintf(L"\t\twBitsPerSample: %d\n", pDevFormat->wBitsPerSample);
+				wprintf(L"\t\tcbSize: %d\n", pDevFormat->cbSize);
+				wprintf(L"\tWAVEFORMATEX Data from GetMixFormat\n");
+				wprintf(L"\t\twFormatTag: %d\n", pMixFormat->wFormatTag);
+				wprintf(L"\t\tnChannels: %d\n", pMixFormat->nChannels);
+				wprintf(L"\t\tnSamplesPerSec: %ld\n", pMixFormat->nSamplesPerSec);
+				wprintf(L"\t\tnAvgBytesPerSec: %ld\n", pMixFormat->nAvgBytesPerSec);
+				wprintf(L"\t\tnBlockAlign: %ld\n", pMixFormat->nBlockAlign);
+				wprintf(L"\t\twBitsPerSample: %d\n", pMixFormat->wBitsPerSample);
+				wprintf(L"\t\tcbSize: %d\n", pMixFormat->cbSize);
+				wprintf(L"***\n\n");
+			}
+		}
 
 		PropVariantClear(&friendlyName);
 	}
